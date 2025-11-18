@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
-from users.schemas import User
+from src.users.schemas import User
 
 def check_user():
     return True

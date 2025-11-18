@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from users.schemas import UserPublic, UserCreate, User
-from deps import get_current_user
+from src.users.schemas import UserPublic, UserCreate, User
+from src.deps import get_current_user
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -11,7 +11,7 @@ async def create_user(user: UserCreate):
 
 @router.post('/login', response_model=UserPublic)
 async def login_user(credentials: OAuth2PasswordRequestForm = Depends()):
-    user = User(login=credentials.username)
+    user = User(username=credentials.username)
     return user
 
 @router.delete('/', dependencies=[Depends(get_current_user)], response_model=UserPublic)

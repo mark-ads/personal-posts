@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from enum import Enum
-from posts.router import router as posts_router
-from users.router import router as users_router
+from src.posts.router import router as posts_router
+from src.users.router import router as users_router
 
 app = FastAPI()
 app.include_router(posts_router, prefix='/api/v1')
