@@ -15,4 +15,4 @@
 
 ## Стек технологий:
 
-FastAPI, Pydantic, pytest-asycnio, RESTapi, PostgreSQL, SQLAlchemy, SQLModel Docker, Redis
+FastAPI, Pydantic, pytest-asycnio, RESTapi, PostgreSQL, SQLAlchemy, SQLModel, Docker, Redis
