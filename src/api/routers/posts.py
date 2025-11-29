@@ -16,6 +16,11 @@ async def create_post(session: SessionDep, post: Post, user: IsUserDep):
     return post
 
 
+@router.get('/{post_id}', response_model=PostResponse)
+async def read_selected_post(post: PostDep):
+    return post
+
+
 @router.get('/', response_model=list[PostResponse])
 async def read_users_posts(session: SessionDep, user: IsUserDep, skip: int = 0, limit: int = 10):
     result = await session.execute(

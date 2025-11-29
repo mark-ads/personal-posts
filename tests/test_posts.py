@@ -12,6 +12,20 @@ async def test_create_post(created_user_post):
 
 
 @pytest.mark.asyncio
+async def test_read_selected_post(client, created_user_post, created_admin_post, user_token):
+    post_id = created_admin_post.json()['id']
+    response = await client.get(f'/api/v1/posts/{post_id}', headers=user_token)
+    assert response.status_code == 403
+    post_id = created_user_post.json()['id']
+    response = await client.get(f'/api/v1/posts/{post_id}', headers=user_token)
+    assert response.status_code == 200
+    data = response.json()
+    assert 'text' in data
+    assert 'created_at' in data
+    assert 'completed' in data
+
+
+@pytest.mark.asyncio
 async def test_read_users_posts(client, user_token):
     response = await client.get('/api/v1/posts/', headers=user_token)
     assert response.status_code == 200
