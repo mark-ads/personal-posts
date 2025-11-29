@@ -18,10 +18,11 @@ class Settings(BaseSettings):
     def DATABASE_URL(self):
         return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
 
-    model_config = SettingsConfigDict(env_file='src/.env')
-
     @property
     def SECRET_KEY(self):
         return self.TOKEN_KEY
+
+    model_config = SettingsConfigDict(env_file='src/.env')
+
 
 settings = Settings()
