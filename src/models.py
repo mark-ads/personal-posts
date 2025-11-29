@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
-from sqlmodel import Column, Relationship, SQLModel, Field, String, text
+from sqlalchemy.orm import column_property
+from sqlmodel import Column, Relationship, SQLModel, Field, String, column, select, text
 
 class User(SQLModel):
     username: str = Field(min_length=4,max_length=255)
@@ -22,13 +23,26 @@ class Post(SQLModel):
     text : str
 
 
+class PostCompleted(SQLModel):
+    completed: bool
+
+
 class PostResponse(Post):
     id: int
     created_at: datetime
+    completed: bool
+    
 
+class PostResponseAdmin(Post):
+    id: int
+    created_at: datetime
+    author_id: int
+    completed: bool
+    
 
 class Posts(Post, table=True):
     id: int = Field(default=None, primary_key=True)
     created_at: datetime = Field(sa_column=Column(String, server_default=text("TIMEZONE('utc', NOW())")))
     author_id: int = Field(foreign_key='users.id')
+    completed: bool = False
     author: Optional["Users"] = Relationship(back_populates='posts')
