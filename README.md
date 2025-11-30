@@ -14,3 +14,62 @@
 FastAPI, Pydantic, pytest-asycnio, RESTapi, PostgreSQL, SQLAlchemy, SQLModel, oauth, jwt
 
 P.S. Если нужно - перепишу запросы с ORM на SQL.
+
+## Как развернуть проект на сервере Ubuntu
+
+
+- Установите PostgreSQL
+
+sudo apt install postgresql postgresql-contrib -y 
+
+- Зайдите в пользователя Postgres
+
+sudo -i -u postgres
+
+- Создайте пользователя и задайте ему пароль
+
+createuser {username} --pwprompt
+
+- Создайте БД
+
+creatdb {db_name} --owner={username}
+
+- Включите сервис PostgreSQL
+
+sudo systemctl enable postgresql
+
+- Создайте пользователя под которым будет запущен проект
+
+sudo adduser fastapi
+sudo -i -u fastapi
+
+- Склонируйте репозиторий
+
+git clone https://github.com/mark-ads/personal-posts
+
+cd personal-posts
+
+- Создайте файл настроек (настройки ниже)
+
+nano src/.env
+
+- Создайте виртуальное окружение
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+- Запустите проект из виртуального окружения
+
+nohup fastapi run src/main.py --reload --host 0.0.0.0 --port 8000 &
+
+## Поля в .env
+
+- DB_HOST=localhost
+- DB_PORT=5432
+- DB_USER=username # логин от пользователя Postrgres
+- DB_PASS=password # # пароль от пользователя Postrgres
+- DB_NAME=posts # название БД
+- TOKEN_KEY=anykey # ключ подписи JWT
+- ADMIN_PASS=adminpass # пароль администратора проекта
+- DROP_TABLE=true # true при первом запуске, затем false
