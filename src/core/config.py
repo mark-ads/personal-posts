@@ -1,8 +1,10 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 import asyncio
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if hasattr(asyncio, "WindowsSelectorEventLoopPolicy"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 class Settings(BaseSettings):
     DB_HOST: str
@@ -16,13 +18,13 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self):
-        return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @property
     def SECRET_KEY(self):
         return self.TOKEN_KEY
 
-    model_config = SettingsConfigDict(env_file='src/.env')
+    model_config = SettingsConfigDict(env_file="src/.env")
 
 
 settings = Settings()
