@@ -6,3 +6,5 @@ fastapi[standard]
 psycopg[binary]
 sqlmodel
 pydantic-settings==2.12.0
+pytest
+pytest-asyncio

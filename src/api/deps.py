@@ -1,57 +1,97 @@
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.ext.asyncio import  AsyncSession
-from sqlmodel import select
-from jose import JWTError, jwt
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from src.core.database import async_session
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+
 from src.core.config import settings
-from src.models import Posts, Users, User
+from src.core.database import async_session
+from src.models import Posts, Users
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
 
+
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = 'HS256'
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/users/login')
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+oauth2_scheme_errors_off = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/users/login", auto_error=False
+)
 
-async def is_user(session: SessionDep, token: str = Depends(oauth2_scheme)) -> Users:
+
+def decode_token(token: str) -> tuple[str, int]:
+    """Декодирование токена"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get('sub')
-        if username is None:
-            raise HTTPException(status_code=401, detail='Invalid token')
-    except JWTError:
-        raise HTTPException(status_code=401, detail='Invalid token')
+        username = payload.get("sub")
+        token_version = payload.get("ver")
 
+        if not isinstance(username, str):
+            raise HTTPException(status_code=401, detail="Invalid token")
+        if not isinstance(token_version, int):
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+    except (JWTError, TypeError):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    return username, token_version
+
+
+async def is_authorized(
+    session: SessionDep, token: str | None = Depends(oauth2_scheme_errors_off)
+) -> bool:
+    if token is None:
+        return False
+    username, token_version = decode_token(token)
+    result = await session.execute(select(Users).where(Users.username == username))
+    user = result.scalar_one_or_none()
+    if user is None or token_version != user.token_version or not user.is_active:
+        return False
+    return True
+
+
+AuthorizedDep = Annotated[bool, Depends(is_authorized)]
+
+
+async def is_user(session: SessionDep, token: str = Depends(oauth2_scheme)) -> Users:
+    username, token_version = decode_token(token)
     result = await session.execute(select(Users).where(Users.username == username))
     user = result.scalar_one_or_none()
     if user is None:
-        raise HTTPException(status_code=401, detail='User not found')
+        raise HTTPException(status_code=401, detail="User not found")
+    if user.token_version != token_version or not user.is_active:
+        raise HTTPException(status_code=403, detail="User is not authorized")
     return user
+
 
 IsUserDep = Annotated[Users, Depends(is_user)]
 
+
 async def is_admin(user: IsUserDep) -> Users:
     if user.superuser is False:
-        raise HTTPException(status_code=403, detail='User is not admin')
+        raise HTTPException(status_code=403, detail="User is not admin")
     return user
 
+
 AdminDep = Annotated[Users, Depends(is_admin)]
+
 
 async def get_post(session: SessionDep, post_id: int, user: IsUserDep) -> Posts:
     result = await session.execute(select(Posts).where(Posts.id == post_id))
     post = result.scalar_one_or_none()
     if post is None:
-        raise HTTPException(status_code=404, detail='Post not found')
+        raise HTTPException(status_code=404, detail="Post not found")
     if post.author_id != user.id and not user.superuser:
-        raise HTTPException(status_code=403, detail='Post belongs to other user')
+        raise HTTPException(status_code=403, detail="Post belongs to other user")
     return post
+
 
 PostDep = Annotated[Posts, Depends(get_post)]

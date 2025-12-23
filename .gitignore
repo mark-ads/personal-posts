@@ -364,6 +364,8 @@ FodyWeavers.xsd
 
 /.env
 venv/
+.venv/
+pyrightconfig.json
 personal-daily-feed.pyproj
 personal-daily-feed.sln
 /logic.txt

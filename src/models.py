@@ -1,22 +1,39 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlmodel import Column, Field, Relationship, SQLModel, String, text
+from sqlmodel import Column, Field, Relationship, SQLModel, String, text  # type: ignore
+
+
+class TokenResponse(SQLModel):
+    access_token: str
+    token_type: str
 
 
 class User(SQLModel):
     username: str = Field(min_length=4, max_length=255)
 
 
+class UserResponse(SQLModel):
+    username: str = Field(min_length=4, max_length=255)
+    is_active: bool
+
+
 class UserCreate(User):
     password: str = Field(min_length=6, max_length=32)
+    repeat_password: str = Field(min_length=6, max_length=32)
+
+
+class UserUpdate(UserCreate):
+    pass
 
 
 class Users(User, table=True):
     id: int = Field(default=None, primary_key=True)
     username: str
     password: str
+    is_active: bool = Field(default=True)
     superuser: bool = Field(default=False)
+    token_version: int = Field(default=0)
     posts: List["Posts"] = Relationship(
         back_populates="author", sa_relationship_kwargs={"lazy": "noload"}
     )
