@@ -1,0 +1,53 @@
+name: Deploy to server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+
+    - name: Add server to known hosts
+      run: ssh-keyscan -H ${{ secrets.BOT_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Debug SSH connection
+      run: |
+        ssh -vvv -o StrictHostKeyChecking=no -o KexAlgorithms=ecdh-sha2-nistp256 -o Ciphers=chacha20-poly1305@openssh.com ${{ secrets.USER }}@${{ secrets.BOT_HOST }} << EOF
+          echo "Connection established. Debug information above."
+        EOF
+
+    - name: Deploy
+      run: |
+        ssh -o StrictHostKeyChecking=no \
+            -o KexAlgorithms=ecdh-sha2-nistp256 \
+            -o Ciphers=chacha20-poly1305@openssh.com \
+            root@${{ secrets.BOT_HOST }} << 'EOF'
+
+        set -e
+
+        echo "SSH connection successful"
+
+        sudo -u ${{ secrets.PROJECT_ACCAUNT }} bash << 'INNER'
+        cd ${{ secrets.MAIN_PATH }}
+        git fetch origin
+        git reset --hard origin/master
+        source .venv/bin/activate
+        INNER
+
+        systemctl daemon-reexec
+        systemctl restart ${{ secrets.SERVICE }}
+        systemctl status ${{ secrets.SERVICE }} --no-pager
+        EOF
+
