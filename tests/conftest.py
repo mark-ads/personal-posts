@@ -43,11 +43,15 @@ async def user_token(client: AsyncClient) -> AsyncGenerator[dict[str, str], None
 async def created_user(
     client: AsyncClient, admin_token: dict[str, str]
 ) -> AsyncGenerator[Response, None]:
-    user_data = {"username": "Luna", "password": "vulpkanin"}
-    response = await client.post("/api/v1/users/", json=user_data, headers=admin_token)
+    user_data = {
+        "username": "Luna",
+        "password": "vulpkanin",
+        "repeat_password": "vulpkanin",
+    }
+    response = await client.post("/api/v1/users/register", json=user_data)
     yield response
     await client.request(
-        "DELETE", "/api/v1/users/", json={"username": "Luna"}, headers=admin_token
+        "DELETE", "/api/v1/admin/Luna", headers=admin_token
     )
 
 
@@ -71,4 +75,3 @@ async def created_user_post(
     post_id = response.json()["id"]
     yield response
     await client.delete(f"/api/v1/posts/{post_id}", headers=user_token)
-

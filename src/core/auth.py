@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from fastapi.exceptions import HTTPException
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -15,17 +16,20 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 async def authenticate_user(
     username: str, password: str, session: AsyncSession
-) -> Users | None:
+) -> Users:
+    """Авторизовать пользователя."""
     result = await session.execute(select(Users).where(Users.username == username))
     user = result.scalar_one_or_none()
-    if not user:
-        return None
-    if not verify_password(password, user.password):
-        return None
+    if not user or not verify_password(password, user.password):
+        raise HTTPException(status_code=401, detail="Username or password is incorrect")
     return user
 
 
 def create_access_token(data: dict[str, str | int | datetime]) -> str:
+    """Создать токен.
+    
+    Содержит username, token_version, expire_date.
+    """
     to_encode = data.copy()
     expire = datetime.now() + timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})

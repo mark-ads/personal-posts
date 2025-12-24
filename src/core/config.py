@@ -7,6 +7,8 @@ if hasattr(asyncio, "WindowsSelectorEventLoopPolicy"):
 
 
 class Settings(BaseSettings):
+    """Настройки приложения из .env."""
+
     DB_HOST: str
     DB_PORT: int
     DB_USER: str

@@ -28,7 +28,7 @@ oauth2_scheme_errors_off = OAuth2PasswordBearer(
 
 
 def decode_token(token: str) -> tuple[str, int]:
-    """Декодирование токена"""
+    """Декодировать токен."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
@@ -38,7 +38,7 @@ def decode_token(token: str) -> tuple[str, int]:
             raise HTTPException(status_code=401, detail="Invalid token")
         if not isinstance(token_version, int):
             raise HTTPException(status_code=401, detail="Invalid token")
-            
+
     except (JWTError, TypeError):
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -48,6 +48,7 @@ def decode_token(token: str) -> tuple[str, int]:
 async def is_authorized(
     session: SessionDep, token: str | None = Depends(oauth2_scheme_errors_off)
 ) -> bool:
+    """Определить авторизацию пользователя без HTTPException."""
     if token is None:
         return False
     username, token_version = decode_token(token)
@@ -58,10 +59,11 @@ async def is_authorized(
     return True
 
 
-AuthorizedDep = Annotated[bool, Depends(is_authorized)]
+AuthorizedDep = Annotated[Users, Depends(is_authorized)]
 
 
 async def is_user(session: SessionDep, token: str = Depends(oauth2_scheme)) -> Users:
+    """Определить авторизован ли пользователь и вернуть его объект из БД."""
     username, token_version = decode_token(token)
     result = await session.execute(select(Users).where(Users.username == username))
     user = result.scalar_one_or_none()
@@ -76,15 +78,18 @@ IsUserDep = Annotated[Users, Depends(is_user)]
 
 
 async def is_admin(user: IsUserDep) -> Users:
+    """Определить является ли пользователь администратором.
+    Вернуть объект пользователя.
+    """
     if user.superuser is False:
         raise HTTPException(status_code=403, detail="User is not admin")
     return user
 
 
-AdminDep = Annotated[Users, Depends(is_admin)]
-
-
 async def get_post(session: SessionDep, post_id: int, user: IsUserDep) -> Posts:
+    """Определить является ли пользователь автором поста.
+    Вернуть пост.
+    """
     result = await session.execute(select(Posts).where(Posts.id == post_id))
     post = result.scalar_one_or_none()
     if post is None:

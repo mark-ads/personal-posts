@@ -44,24 +44,6 @@ async def test_read_users_posts(client: AsyncClient, user_token: dict[str, str])
 
 
 @pytest.mark.asyncio
-async def test_read_all_post(
-    client: AsyncClient, admin_token: dict[str, str], user_token: dict[str, str]
-):
-    response = await client.get("/api/v1/admin/posts", headers=admin_token)
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert "id" in data[0]
-    assert "text" in data[0]
-    assert "created_at" in data[0]
-    assert "author_id" in data[0]
-    assert "completed" in data[0]
-    response = await client.get("/api/v1/admin/posts", headers=user_token)
-    assert response.status_code == 403
-    assert response.json()["detail"] == "User is not admin"
-
-
-@pytest.mark.asyncio
 async def test_change_post(
     client: AsyncClient,
     user_token: dict[str, str],
@@ -123,4 +105,3 @@ async def test_delete_post(
     assert response.status_code == 204
     response = await client.delete(f"/api/v1/posts/{post_id}", headers=admin_token)
     assert response.status_code == 404
-

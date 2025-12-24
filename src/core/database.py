@@ -1,4 +1,3 @@
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
@@ -11,16 +10,11 @@ engine = create_async_engine(settings.DATABASE_URL, echo=False, pool_size=15)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-async def get_version():
-    async with engine.connect() as conn:
-        res = await conn.execute(text("SELECT VERSION()"))
-        if not isinstance(res, str):
-            print("No version returned")
-            return
-        print(f"{res.first()[0]}")  # type: ignore
-
-
 async def init_db():
+    """Создать базу данных, если в .env стоит DROP_TABLE=true.
+
+    Так же, создается первый администратор и тестовый пользователь.
+    """
     if not settings.DROP_TABLE:
         return
 
