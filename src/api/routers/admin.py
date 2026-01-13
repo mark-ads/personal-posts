@@ -58,12 +58,26 @@ async def update_users_role(session: SessionDep, user: UserRoleUpdate):
 
 
 @router.get(
-    "/{username}",
+    "/id/{user_id}",
     dependencies=[Depends(is_admin)],
     response_model=AdminUserInfoResponse,
 )
-async def get_users_info(session: SessionDep, username: str):
-    """Получения информации о пользователе администратором."""
+async def get_users_info_by_id(session: SessionDep, user_id: int):
+    """Получение администратором информации о пользователе по ID."""
+    result = await session.execute(select(Users).where(Users.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User's id not found")
+    return user
+
+
+@router.get(
+    "/username/{username}",
+    dependencies=[Depends(is_admin)],
+    response_model=AdminUserInfoResponse,
+)
+async def get_users_info_by_name(session: SessionDep, username: str):
+    """Получение администратором информации о пользователе по username."""
     result = await session.execute(select(Users).where(Users.username == username))
     user = result.scalar_one_or_none()
     if user is None:
