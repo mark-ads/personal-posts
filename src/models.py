@@ -14,7 +14,7 @@ class TokenResponse(SQLModel):
 class User(SQLModel):
     """Базовая схема пользователя."""
 
-    username: str = Field(min_length=4, max_length=255)
+    username: str = Field(min_length=4, max_length=255, description="Имя аккаунта.")
 
 
 class UserResponse(User):
@@ -39,14 +39,14 @@ class UserUpdate(UserCreate):
 class UserRoleUpdate(User):
     """Схема изменения роли пользователя."""
 
-    superuser: bool = Field(description='Является ли аккаунт администратором.')
+    superuser: bool = Field(description="Является ли аккаунт администратором.")
 
 
 class AdminUserInfoResponse(User):
     """Схема возврата информации пользователя для админинстратора."""
 
-    id: int = Field(description='ID аккаунта.')
-    superuser: bool = Field(description='Является ли аккаунт администратором.')
+    id: int = Field(description="ID аккаунта.")
+    superuser: bool = Field(description="Является ли аккаунт администратором.")
     is_active: bool = Field(description="Активен ли аккаунт.")
 
 
@@ -67,30 +67,30 @@ class Users(User, table=True):
 class Post(SQLModel):
     """Базовая схема поста."""
 
-    text: str = Field(description='Основной текст поста.')
+    text: str = Field(description="Основной текст поста.")
 
 
 class PostCompleted(SQLModel):
     """Схема обновления поля completed."""
 
-    completed: bool = Field(description='Считается ли пост выполенным.')
+    completed: bool = Field(description="Считается ли пост выполенным.")
 
 
 class PostResponse(Post):
     """Схема информации о посте."""
 
-    id: int = Field(description='ID поста.')
-    created_at: datetime = Field(description='Время публикации поста.')
-    completed: bool = Field(description='Считается ли пост выполенным.')
+    id: int = Field(description="ID поста.")
+    created_at: datetime = Field(description="Время публикации поста.")
+    completed: bool = Field(description="Считается ли пост выполенным.")
 
 
 class PostResponseAdmin(Post):
     """Схема возврата информации о посте для администратора."""
 
-    id: int = Field(description='ID поста.')
-    created_at: datetime = Field(description='Время публикации поста.')
-    author_id: int = Field(description='ID автора поста.')
-    completed: bool = Field(description='Считается ли пост выполенным.')
+    id: int = Field(description="ID поста.")
+    created_at: datetime = Field(description="Время публикации поста.")
+    author_id: int = Field(description="ID автора поста.")
+    completed: bool = Field(description="Считается ли пост выполенным.")
 
 
 class Posts(Post, table=True):
